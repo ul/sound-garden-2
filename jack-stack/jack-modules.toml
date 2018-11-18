@@ -1,0 +1,16 @@
+[words.constant]
+cmd = "target/release/constant"
+slash_args = ["--value"]
+inputs = []
+outputs = ["output"]
+
+[words.phasor]
+cmd = "target/release/phasor"
+inputs = ["frequency"]
+outputs = ["phase"]
+
+[words.delay]
+cmd = "target/release/delay"
+slash_args = ["--max-delay"]
+inputs = ["x", "delay"]
+outputs = ["output"]

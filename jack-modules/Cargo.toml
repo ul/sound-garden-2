@@ -1,0 +1,12 @@
+[package]
+name = "jack-modules"
+version = "0.1.0"
+authors = ["Ruslan Prokopchuk <fer.obbee@gmail.com>"]
+
+[dependencies]
+clap = "2"
+crossbeam-channel = "0"
+jack = "0"
+synth-modules = { path = "../synth-modules" }
+void = "1"
+

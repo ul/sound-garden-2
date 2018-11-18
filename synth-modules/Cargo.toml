@@ -1,0 +1,6 @@
+[package]
+name = "synth-modules"
+version = "0.1.0"
+authors = ["Ruslan Prokopchuk <fer.obbee@gmail.com>"]
+
+[dependencies]

@@ -1,0 +1,14 @@
+[package]
+name = "sound-garden"
+version = "0.1.0"
+authors = ["Ruslan Prokopchuk <fer.obbee@gmail.com>"]
+
+[workspace]
+
+[dependencies]
+synth-modules = { path = "synth-modules" }
+jack-modules = { path = "jack-modules" }
+jack-stack = { path = "jack-stack" }
+
+[profile.release]
+lto = true

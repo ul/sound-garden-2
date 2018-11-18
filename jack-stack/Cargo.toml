@@ -1,0 +1,19 @@
+[package]
+name = "jack-stack"
+version = "0.1.0"
+authors = ["Ruslan Prokopchuk <fer.obbee@gmail.com>"]
+
+[dependencies]
+clap = "2"
+crossbeam-channel = "0"
+fnv = "1"
+itertools = "0"
+jack = "0"
+regex = "1"
+rosc = "0"
+serde = "1"
+serde_derive = "1"
+slog = { version = "2", features = ["release_max_level_debug"] }
+slog-scope = "4"
+sloggers = "0"
+toml = "0"
