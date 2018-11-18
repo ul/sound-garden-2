@@ -97,9 +97,11 @@ expansion = "phasor fn1/triangle"
 [saw]
 expansion = "phasor"
 
-# TODO uncomment after `swap` implementation
-# [pulse]
-# expansion = "swap phasor swap fn2/rectangle"
+[pulse]
+expansion = "swap phasor swap fn2/rectangle"
+
+[p]
+expansion = "pulse"
 
 [s]
 expansion = "sine"

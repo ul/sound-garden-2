@@ -13,7 +13,7 @@ pub struct Stack {
     /// Used by Stack GC to drop modules which are neither on stack nor inputs of modules on stack.
     connections: Vec<Option<FnvHashSet<usize>>>,
     /// Collection of used modules.
-    /// When modules is not used anymore, just replace its vec entry with `None`
+    /// When module is not used anymore, just replace its vec entry with `None`
     /// and corresponding process will be killed.
     /// This is not the most compact way to bookkeep modules, but it's simple
     /// and in practice not that wasteful (even thousands of `None`s accumulating during session
@@ -21,9 +21,7 @@ pub struct Stack {
     modules: Vec<Option<Module>>,
     /// Stack of ports. Top ones belonging to the same module are connected to the
     /// system:playback_*. When the new word is evaluated its module inputs are consumed from stack
-    /// and its outputs are put back to stack. It means that for the user single element of the
-    /// Stack is module, but single element of internal stack is port. Operations like `pop`, `dup`,
-    /// `swap`, `rot` should scan stack for ports belonging to the same module.
+    /// and its outputs are put back to stack.
     stack: Vec<Element>,
 }
 
@@ -52,7 +50,7 @@ impl Stack {
         self.collect_garbage();
     }
 
-    pub fn eval_internal(&mut self, s: &str, client: &jack::Client, config: &Config) {
+    fn eval_internal(&mut self, s: &str, client: &jack::Client, config: &Config) {
         for token in s.split_whitespace() {
             debug!("Token: {}", token);
             let mut token = token.to_string();
@@ -62,17 +60,37 @@ impl Stack {
             let args = token.split('/').collect::<Vec<_>>();
             let word = args[0];
             match word {
+                "clear" => {
+                    self.stack.clear();
+                }
+                // a -> ()
                 "pop" => {
-                    if self.stack.is_empty() {
-                        warn!("Stack is empty, nothing to pop.");
+                    self.stack.pop();
+                }
+                // a -> a a
+                "dup" => {
+                    if let Some(top_element) = &self.stack.last().cloned() {
+                        self.stack.push(top_element.clone());
+                    }
+                }
+                // a b -> b a
+                "swap" => {
+                    let len = self.stack.len();
+                    if len < 2 {
+                        warn!("Not enough minerals.");
                         return;
                     }
-                    let top_module_idx = self.stack.pop().unwrap().idx;
-                    while !self.stack.is_empty()
-                        && self.stack[self.stack.len() - 1].idx == top_module_idx
-                    {
-                        self.stack.pop();
+                    self.stack.swap(len - 2, len - 1);
+                }
+                // a b c -> b c a
+                "rot" => {
+                    let len = self.stack.len();
+                    if len < 3 {
+                        warn!("You require more Vespene gas.");
+                        return;
                     }
+                    self.stack.swap(len - 2, len - 1);
+                    self.stack.swap(len - 3, len - 1);
                 }
                 _ => self.eval_custom_word(&token, client, config),
             }
@@ -153,8 +171,7 @@ impl Stack {
                 .disconnect(&client.port_by_name(port).unwrap())
                 .expect("Failed to disconnect port");
         }
-        if !self.stack.is_empty() {
-            let top_module_idx = self.stack[self.stack.len() - 1].idx;
+        if let Some(top_module_idx) = self.stack.last().and_then(|e| Some(e.idx)) {
             let top_module_name = self.modules[top_module_idx]
                 .as_ref()
                 .unwrap()
@@ -190,7 +207,9 @@ impl Stack {
         }
 
         let garbage = &all_modules - &stack_modules;
-        debug!("Collecting garbage: {:?}", garbage);
+        if !garbage.is_empty() {
+            debug!("Collecting garbage: {:?}", garbage);
+        }
         for idx in garbage {
             self.connections[idx] = None;
             self.modules[idx] = None;
