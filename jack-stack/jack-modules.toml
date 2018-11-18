@@ -1,111 +1,111 @@
-[words.constant]
+[constant]
 cmd = "target/release/constant"
 slash_args = ["--value"]
 inputs = []
 outputs = ["output"]
 
-[words.phasor]
+[phasor]
 cmd = "target/release/phasor"
 inputs = ["frequency"]
 outputs = ["phase"]
 
-[words.delay]
+[delay]
 cmd = "target/release/delay"
 slash_args = ["--max-delay"]
 inputs = ["x", "delay"]
 outputs = ["output"]
 
-[words.noise]
+[noise]
 cmd = "target/release/noise"
 inputs = []
 outputs = ["output"]
 
-[words.n]
+[n]
 expansion = "noise"
 
-[words.fn1]
+[fn1]
 cmd = "target/release/fn1"
 slash_args = ["--fn"]
 inputs = ["x"]
 outputs = ["output"]
 
-[words.fn2]
+[fn2]
 cmd = "target/release/fn2"
 slash_args = ["--fn"]
 inputs = ["x", "y"]
 outputs = ["output"]
 
-[words.fn3]
+[fn3]
 cmd = "target/release/fn3"
 slash_args = ["--fn"]
 inputs = ["x", "y", "z"]
 outputs = ["output"]
 
-[words.unit]
+[unit]
 expansion = "fn1/unit"
 
-[words.circle]
+[circle]
 expansion = "fn1/circle"
 
-[words.sin]
+[sin]
 expansion = "fn1/sin"
 
-[words.cos]
+[cos]
 expansion = "fn1/cos"
 
-[words.add]
+[add]
 expansion = "fn2/add"
 
-[words."+"]
+["+"]
 expansion = "add"
 
-[words.sub]
+[sub]
 expansion = "fn2/sub"
 
-[words."-"]
+["-"]
 expansion = "sub"
 
-[words.mul]
+[mul]
 expansion = "fn2/mul"
 
-[words."*"]
+["*"]
 expansion = "mul"
 
-[words.div]
+[div]
 expansion = "fn2/div"
 
-[words."%"]
+["%"]
 expansion = "div"
 
-[words.range]
+[range]
 expansion = "fn3/range"
 
-[words.r]
+[r]
 expansion = "range"
 
 # Oscillators
 
-[words.sine]
+[sine]
 expansion = "phasor fn1/sine"
 
-[words.cosine]
+[cosine]
 expansion = "phasor fn1/cosine"
 
-[words.tri]
+[tri]
 expansion = "phasor fn1/triangle"
 
-[words.saw]
+[saw]
 expansion = "phasor"
 
 # TODO uncomment after `swap` implementation
-# [words.pulse]
+# [pulse]
 # expansion = "swap phasor swap fn2/rectangle"
 
-[words.s]
+[s]
 expansion = "sine"
 
-[words.t]
+[t]
 expansion = "tri"
 
-[words.w]
+[w]
 expansion = "saw"

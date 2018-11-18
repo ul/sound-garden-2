@@ -40,9 +40,10 @@ pub enum WordDefinition {
     Compound(CompoundWord),
 }
 
-#[derive(Deserialize)]
+pub type Vocabulary = FnvHashMap<String, WordDefinition>;
+
 pub struct Config {
-    pub words: FnvHashMap<String, WordDefinition>,
+    pub words: Vocabulary,
 }
 
 fn default_name_arg() -> String {

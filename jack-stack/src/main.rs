@@ -37,9 +37,9 @@ fn main() {
         .author("Ruslan Prokopchuk <fer.obbee@gmail.com>")
         .about("Manage JACK client and connections with a simple stack-based language")
         .arg(
-            Arg::with_name("CONFIG")
-                .long("config")
-                .help("Config file")
+            Arg::with_name("VOCABULARY")
+                .long("vocabulary")
+                .help("Words definitions")
                 .required(true)
                 .takes_value(true),
         ).arg(
@@ -74,9 +74,10 @@ fn main() {
     let _guard = slog_scope::set_global_logger(logger);
 
     // Read config.
-    let config = matches.value_of("CONFIG").unwrap(); // ok to unwrap as option is required
-    let config = std::fs::read_to_string(config).expect("Failed to read config file.");
-    let config: config::Config = toml::from_str(&config).expect("Failed to parse config file.");
+    let vocab = matches.value_of("VOCABULARY").unwrap(); // ok to unwrap as option is required
+    let vocab = std::fs::read_to_string(vocab).expect("Failed to read vocabulary file.");
+    let vocab: config::Vocabulary = toml::from_str(&vocab).expect("Failed to parse config file.");
+    let config = config::Config { words: vocab };
 
     // Connect to JACK and create Stack.
     // USE_EXACT_NAME name used to prevent two jack-stack clients managing the same server instance.
