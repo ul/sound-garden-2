@@ -4,4 +4,5 @@
 pub use constant::Constant;
 pub use delay::Delay;
 pub use phasor::Phasor;
+pub use pure::*;
 pub use sample::Sample;

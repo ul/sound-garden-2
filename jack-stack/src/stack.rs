@@ -47,6 +47,12 @@ impl Stack {
 
     /// Evaluate `s` and manage JACK clients and connections via `client` according to `config`.
     pub fn eval(&mut self, s: &str, client: &jack::Client, config: &Config) {
+        self.eval_internal(s, client, config);
+        self.reset_system_playback(client);
+        self.collect_garbage();
+    }
+
+    pub fn eval_internal(&mut self, s: &str, client: &jack::Client, config: &Config) {
         for token in s.split_whitespace() {
             debug!("Token: {}", token);
             let mut token = token.to_string();
@@ -71,11 +77,9 @@ impl Stack {
                 _ => self.eval_custom_word(&token, client, config),
             }
         }
-        self.reset_system_playback(client);
-        self.collect_garbage();
     }
 
-    pub fn eval_custom_word(&mut self, token: &str, client: &jack::Client, config: &Config) {
+    fn eval_custom_word(&mut self, token: &str, client: &jack::Client, config: &Config) {
         let args = token.split('/').collect::<Vec<_>>();
         let word = args[0];
         match config.words.get(word) {
@@ -129,7 +133,7 @@ impl Stack {
                     }
                 }
                 WordDefinition::Compound(definition) => {
-                    self.eval(&definition.expansion, client, config)
+                    self.eval_internal(&definition.expansion, client, config)
                 }
             },
             None => {

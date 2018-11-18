@@ -201,6 +201,7 @@ dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam-channel 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "jack 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "synth-modules 0.1.0",
  "void 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

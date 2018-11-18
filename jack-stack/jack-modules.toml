@@ -14,3 +14,98 @@ cmd = "target/release/delay"
 slash_args = ["--max-delay"]
 inputs = ["x", "delay"]
 outputs = ["output"]
+
+[words.noise]
+cmd = "target/release/noise"
+inputs = []
+outputs = ["output"]
+
+[words.n]
+expansion = "noise"
+
+[words.fn1]
+cmd = "target/release/fn1"
+slash_args = ["--fn"]
+inputs = ["x"]
+outputs = ["output"]
+
+[words.fn2]
+cmd = "target/release/fn2"
+slash_args = ["--fn"]
+inputs = ["x", "y"]
+outputs = ["output"]
+
+[words.fn3]
+cmd = "target/release/fn3"
+slash_args = ["--fn"]
+inputs = ["x", "y", "z"]
+outputs = ["output"]
+
+[words.unit]
+expansion = "fn1/unit"
+
+[words.circle]
+expansion = "fn1/circle"
+
+[words.sin]
+expansion = "fn1/sin"
+
+[words.cos]
+expansion = "fn1/cos"
+
+[words.add]
+expansion = "fn2/add"
+
+[words."+"]
+expansion = "add"
+
+[words.sub]
+expansion = "fn2/sub"
+
+[words."-"]
+expansion = "sub"
+
+[words.mul]
+expansion = "fn2/mul"
+
+[words."*"]
+expansion = "mul"
+
+[words.div]
+expansion = "fn2/div"
+
+[words."%"]
+expansion = "div"
+
+[words.range]
+expansion = "fn3/range"
+
+[words.r]
+expansion = "range"
+
+# Oscillators
+
+[words.sine]
+expansion = "phasor fn1/sine"
+
+[words.cosine]
+expansion = "phasor fn1/cosine"
+
+[words.tri]
+expansion = "phasor fn1/triangle"
+
+[words.saw]
+expansion = "phasor"
+
+# TODO uncomment after `swap` implementation
+# [words.pulse]
+# expansion = "swap phasor swap fn2/rectangle"
+
+[words.s]
+expansion = "sine"
+
+[words.t]
+expansion = "tri"
+
+[words.w]
+expansion = "saw"

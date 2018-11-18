@@ -5,4 +5,5 @@ pub mod constant;
 pub mod delay;
 pub mod phasor;
 pub mod prelude;
+pub mod pure;
 pub mod sample;
