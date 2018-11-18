@@ -17,6 +17,9 @@ impl Drop for Module {
         if self.process.kill().is_err() {
             warn!("Module `{}` is already dead.", self.name);
         };
+        if self.process.wait().is_err() {
+            warn!("Module `{}` was not even started!", self.name);
+        };
     }
 }
 
