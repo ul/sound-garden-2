@@ -1,4 +1,7 @@
-//! # Constant
+//! # Phasor
+//!
+//! Oscillate as a saw wave in interval [-1, 1] with the frequency provided via the `frequency` port
+//! and write current phase into the `phase` port.
 
 #[macro_use]
 extern crate clap;
@@ -29,6 +32,8 @@ pub fn main() {
         jack::ClientOptions::NO_START_SERVER | jack::ClientOptions::USE_EXACT_NAME,
     ).expect("Failed to connect to JACK");
 
+    let mut module = Phasor::new(client.sample_rate());
+
     let frequency = client
         .register_port("frequency", jack::AudioIn::default())
         .expect("Failed to register input port");
@@ -36,8 +41,6 @@ pub fn main() {
     let mut phase = client
         .register_port("phase", jack::AudioOut::default())
         .expect("Failed to register output port");
-
-    let mut module = Phasor::new(client.sample_rate());
 
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
         for (phase, frequency) in phase

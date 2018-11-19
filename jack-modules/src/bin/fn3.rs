@@ -1,4 +1,9 @@
-//! # Delay
+//! # Fn3
+//!
+//! Transform `x` and `y` and `z` ports signals with a ternary function and write result to the `output` port.
+//! Function must be selected via `--fn` argument:
+//!
+//! * range -- [-1, 1] -> [y, z]
 
 #[macro_use]
 extern crate clap;

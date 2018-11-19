@@ -1,4 +1,13 @@
-//! # Delay
+//! # Fn2
+//!
+//! Transform `x` and `y` ports signals with a binary function and write result to the `output` port.
+//! Function must be selected via `--fn` argument:
+//!
+//! * add       -- x + y
+//! * mul       -- x * y
+//! * sub       -- x - y
+//! * div       -- x / y
+//! * rectangle -- x = phase, y = width or duty cycle
 
 #[macro_use]
 extern crate clap;

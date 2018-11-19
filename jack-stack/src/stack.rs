@@ -1,11 +1,10 @@
 //! # Stack
 //!
 //! Manage JACK clients and connections with style using a simple stack-based language.
-//!
-//! TODO Always connect to the system:playback_* ports via [-1, 1] clip module to protect hardware and ears.
 
 use config::{Config, WordDefinition};
 use fnv::FnvHashSet;
+use manager::Manager;
 use module::Module;
 
 pub struct Stack {
@@ -30,7 +29,7 @@ pub struct Stack {
 struct Element {
     /// Index of the module to which this port belongs to.
     idx: usize,
-    /// Name of the port (without module name).
+    /// Full name of the port (with module name).
     port: String,
 }
 
@@ -43,17 +42,20 @@ impl Stack {
         }
     }
 
-    /// Evaluate `s` and manage JACK clients and connections via `client` according to `config`.
-    pub fn eval(&mut self, s: &str, client: &jack::Client, config: &Config) {
-        self.eval_internal(s, client, config);
-        self.reset_system_playback(client);
+    /// Evaluate `s` by tossing the stack, spawning required modules and making required connections.
+    /// Then connect top module on the stack to the system playback.
+    pub fn eval(&mut self, s: &str, manager: &Manager, config: &Config) {
+        self.eval_internal(s, manager, config);
+        self.reset_system_playback(manager);
         self.collect_garbage();
     }
 
-    fn eval_internal(&mut self, s: &str, client: &jack::Client, config: &Config) {
+    /// Evaluate `s` by tossing the stack, spawning required modules and making required connections.
+    fn eval_internal(&mut self, s: &str, manager: &Manager, config: &Config) {
         for token in s.split_whitespace() {
             debug!("Token: {}", token);
             let mut token = token.to_string();
+            // `constant` word can have custom definition, but its semantics are reserved.
             if token.parse::<f64>().is_ok() {
                 token = format!("constant/{}", token);
             }
@@ -69,7 +71,7 @@ impl Stack {
                 }
                 // a -> a a
                 "dup" => {
-                    if let Some(top_element) = &self.stack.last().cloned() {
+                    if let Some(top_element) = self.stack.last().cloned() {
                         self.stack.push(top_element.clone());
                     }
                 }
@@ -92,12 +94,14 @@ impl Stack {
                     self.stack.swap(len - 2, len - 1);
                     self.stack.swap(len - 3, len - 1);
                 }
-                _ => self.eval_custom_word(&token, client, config),
+                _ => self.eval_custom_word(&token, manager, config),
             }
         }
     }
 
-    fn eval_custom_word(&mut self, token: &str, client: &jack::Client, config: &Config) {
+    /// Evaluate token by spawning required module and making required connections for primitive
+    /// word, expand and evaluate compound one.
+    fn eval_custom_word(&mut self, token: &str, manager: &Manager, config: &Config) {
         let args = token.split('/').collect::<Vec<_>>();
         let word = args[0];
         match config.words.get(word) {
@@ -109,7 +113,7 @@ impl Stack {
                     }
                     let idx = self.modules.len();
                     let name = format!("{}_{}", token, idx);
-                    let module = Module::spawn(client, definition, &name, &args[1..]);
+                    let module = Module::spawn(manager, definition, &name, &args[1..]);
                     if module.is_none() {
                         error!("Failed to spawn a module.");
                         return;
@@ -127,17 +131,9 @@ impl Stack {
                     for input in definition.inputs.iter().rev() {
                         // Ok to unwrap as we checked stack len against inputs len.
                         let elem = self.stack.pop().unwrap();
-                        client
-                            .connect_ports_by_name(
-                                &format!(
-                                    "{}:{}",
-                                    // Should be ok to unwrap as long as we have robust stack GC,
-                                    // or don't remove modules at all.
-                                    self.modules[elem.idx].as_ref().unwrap().name,
-                                    elem.port
-                                ),
-                                &format!("{}:{}", name, input),
-                            ).expect("Failed to connect ports");
+                        manager
+                            .connect_ports(&elem.port, &format!("{}:{}", name, input))
+                            .expect("Failed to connect ports");
                         connections.extend(self.connections[elem.idx].as_ref().unwrap());
                         connections.insert(elem.idx);
                     }
@@ -145,13 +141,13 @@ impl Stack {
                     for output in &definition.outputs {
                         let element = Element {
                             idx,
-                            port: output.to_owned(),
+                            port: format!("{}:{}", name, output),
                         };
                         self.stack.push(element);
                     }
                 }
                 WordDefinition::Compound(definition) => {
-                    self.eval_internal(&definition.expansion, client, config)
+                    self.eval_internal(&definition.expansion, manager, config)
                 }
             },
             None => {
@@ -160,38 +156,20 @@ impl Stack {
         }
     }
 
-    fn reset_system_playback(&self, client: &jack::Client) {
-        let playback_ports = client.ports(
-            Some("^system:playback_[0-9]+$"),
-            None,
-            jack::PortFlags::empty(),
-        );
-        for port in &playback_ports {
-            client
-                .disconnect(&client.port_by_name(port).unwrap())
-                .expect("Failed to disconnect port");
-        }
+    /// Connect ports on the top of the stack belonging to the same module to the system playback.
+    fn reset_system_playback(&self, manager: &Manager) {
         if let Some(top_module_idx) = self.stack.last().and_then(|e| Some(e.idx)) {
-            let top_module_name = self.modules[top_module_idx]
-                .as_ref()
-                .unwrap()
-                .name
-                .to_owned();
-            let out_ports = self
+            let outputs = self
                 .stack
                 .iter()
                 .rev()
                 .take_while(|e| e.idx == top_module_idx)
-                .map(|e| format!("{}:{}", top_module_name, e.port))
-                .cycle();
-            for (system_port, out_port) in playback_ports.iter().zip(out_ports.cycle()) {
-                client
-                    .connect_ports_by_name(&out_port, system_port)
-                    .expect("Failed to connect ports");
-            }
+                .map(|e| e.port.to_owned());
+            manager.reset_outputs(outputs);
         }
     }
 
+    /// Drop modules which are not connected to the stack.
     fn collect_garbage(&mut self) {
         let all_modules = self
             .modules

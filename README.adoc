@@ -1,0 +1,11 @@
+----
+$ cargo build -p jack-modules --bin constant --bin phasor --bin delay --bin noise --bin fn1 --bin fn2 --bin fn3 --release
+----
+
+----
+$ cargo run -p jack-stack -- --vocabulary jack-stack/jack-modules.toml
+----
+
+----
+$ oscsend localhost 7770 /eval s '1 sine 440 * sine'
+----

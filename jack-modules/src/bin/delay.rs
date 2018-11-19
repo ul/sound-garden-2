@@ -1,4 +1,7 @@
 //! # Delay
+//!
+//! Write `x` port signal delayed by seconds provided via `delay` port to the `output` port.
+//! Max delay must be provided via `--max-delay` argument to allocate appropriate buffer on start.
 
 #[macro_use]
 extern crate clap;

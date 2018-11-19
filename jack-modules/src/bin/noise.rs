@@ -1,4 +1,6 @@
-//! # Constant
+//! # Noise
+//!
+//! Produce white noise in the `output` port.
 
 #[macro_use]
 extern crate clap;
@@ -8,7 +10,6 @@ extern crate rand;
 extern crate synth_modules;
 
 use clap::{App, Arg};
-use synth_modules::prelude::*;
 
 pub fn main() {
     let matches = App::new("Noise")

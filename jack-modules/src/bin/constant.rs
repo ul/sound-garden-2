@@ -1,4 +1,6 @@
 //! # Constant
+//!
+//! Always write the same value provided as the `--value` argument to the `output` port.
 
 #[macro_use]
 extern crate clap;
@@ -41,11 +43,11 @@ pub fn main() {
         jack::ClientOptions::NO_START_SERVER | jack::ClientOptions::USE_EXACT_NAME,
     ).expect("Failed to connect to JACK");
 
+    let module = Constant::new(value);
+
     let mut output = client
         .register_port("output", jack::AudioOut::default())
         .expect("Failed to register output port");
-
-    let module = Constant::new(value);
 
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
         for sample in output.as_mut_slice(ps) {

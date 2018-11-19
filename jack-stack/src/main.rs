@@ -20,10 +20,13 @@ extern crate slog_scope;
 extern crate toml;
 
 mod config;
+mod gatekeeper;
+mod manager;
 mod module;
 mod stack;
 
 use clap::{App, Arg};
+use manager::Manager;
 use rosc::{OscPacket, OscType};
 use sloggers::terminal::{Destination, TerminalLoggerBuilder};
 use sloggers::types::Severity;
@@ -56,7 +59,7 @@ fn main() {
                 .help("Sets the level of verbosity"),
         ).get_matches();
 
-    // Configure global logger
+    // Configure global logger.
     let verbosity = matches.occurrences_of("v") as u8;
 
     let level = match verbosity {
@@ -79,15 +82,9 @@ fn main() {
     let vocab: config::Vocabulary = toml::from_str(&vocab).expect("Failed to parse config file.");
     let config = config::Config { words: vocab };
 
-    // Connect to JACK and create Stack.
-    // USE_EXACT_NAME name used to prevent two jack-stack clients managing the same server instance.
-    // To support multiple jack-stack clients we need at least:
-    // * use unique suffixes in module names (so if you eval `440 s` and `440 s` in both clients
-    //   it wouldn't crash trying to create two `constant_440_0` modules in JACK);
-    // * disconnect system ports only from current stack's ports when rebuilding graph.
-    let (client, _status) = jack::Client::new("jack-stack", jack::ClientOptions::USE_EXACT_NAME)
-        .expect("Failed to connect to JACK.");
     let mut stack = Stack::new();
+
+    let manager = Manager::new();
 
     // Spin up OSC server.
     let address = matches.value_of("ADDRESS").unwrap(); // ok to unwrap as option is required
@@ -100,7 +97,7 @@ fn main() {
             Ok((size, _addr)) => {
                 let packet = rosc::decoder::decode(&buf[..size]);
                 match packet {
-                    Ok(packet) => handle_packet(packet, &client, &config, &mut stack),
+                    Ok(packet) => handle_packet(packet, &manager, &config, &mut stack),
                     Err(e) => error!("Failed to decode OSC packet: {:?}.", e),
                 }
             }
@@ -114,12 +111,7 @@ fn main() {
 
 /// OSC router which matches message to addresses and calls appropriate handlers for them,
 /// passing down app state like client, config, stack.
-fn handle_packet(
-    packet: OscPacket,
-    client: &jack::Client,
-    config: &config::Config,
-    stack: &mut Stack,
-) {
+fn handle_packet(packet: OscPacket, manager: &Manager, config: &config::Config, stack: &mut Stack) {
     match packet {
         OscPacket::Message(msg) => match &msg.addr as &str {
             "/eval" => if let Some(args) = msg.args {
@@ -131,7 +123,7 @@ fn handle_packet(
                     warn!("Extra arguments to eval will be ignored.");
                 }
                 if let OscType::String(ref s) = args[0] {
-                    stack.eval(s, client, config);
+                    stack.eval(s, manager, config);
                 } else {
                     warn!("Expected string to eval, but got {:?}", args[0]);
                 }

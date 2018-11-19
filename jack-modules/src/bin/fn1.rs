@@ -1,4 +1,15 @@
-//! # Delay
+//! # Fn1
+//!
+//! Transform `x` port signal with an unary function and write result to the `output` port.
+//! Function must be selected via `--fn` argument:
+//!
+//! * sin      -- sin(x)
+//! * sine     -- sin(2πx)
+//! * cos      -- cos(x)
+//! * cosine   -- cos(2πx)
+//! * triangle -- /| -> /\
+//! * unit     -- [-1, 1] -> [0, 1]
+//! * circle   -- [-1, 1] -> [-π, π]
 
 #[macro_use]
 extern crate clap;
