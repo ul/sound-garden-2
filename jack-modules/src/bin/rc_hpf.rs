@@ -1,7 +1,7 @@
-//! # Delay
+//! # RC HPF
 //!
-//! Write `x` port signal delayed by seconds provided via `delay` port to the `output` port.
-//! Max delay must be provided via `--max-delay` argument to allocate appropriate buffer on start.
+//! Apply high-pass filter to the `x` port signal with cut-off frequency passed via `frequency` port.
+//! Write result into the `output` port.
 
 #[macro_use]
 extern crate clap;
@@ -13,29 +13,17 @@ use clap::{App, Arg};
 use synth_modules::prelude::*;
 
 pub fn main() {
-    let matches = App::new("Delay")
+    let matches = App::new("RC HPF")
         .version(crate_version!())
         .author("Ruslan Prokopchuk <fer.obbee@gmail.com>")
-        .about("Delay signal up to max_delay seconds")
+        .about("Simple IIR low-pass filter")
         .arg(
-            Arg::with_name("MAX_DELAY")
-                .long("max-delay")
-                .help("Max allowed delay (seconds)")
-                .required(true)
-                .takes_value(true),
-        ).arg(
             Arg::with_name("NAME")
                 .long("name")
                 .help("Client name")
                 .required(true)
                 .takes_value(true),
         ).get_matches();
-
-    let max_delay: Sample = matches
-        .value_of("MAX_DELAY")
-        .unwrap()
-        .parse()
-        .expect("Max delay must be a number");
 
     let name = matches.value_of("NAME").unwrap();
 
@@ -44,14 +32,14 @@ pub fn main() {
         jack::ClientOptions::NO_START_SERVER | jack::ClientOptions::USE_EXACT_NAME,
     ).expect("Failed to connect to JACK");
 
-    let mut module = Delay::new(client.sample_rate(), max_delay);
+    let mut module = HPF::new(client.sample_rate());
 
     let x = client
         .register_port("x", jack::AudioIn::default())
         .expect("Failed to register input port");
 
-    let delay = client
-        .register_port("delay", jack::AudioIn::default())
+    let frequency = client
+        .register_port("frequency", jack::AudioIn::default())
         .expect("Failed to register input port");
 
     let mut output = client
@@ -59,13 +47,13 @@ pub fn main() {
         .expect("Failed to register output port");
 
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
-        for ((output, x), delay) in output
+        for ((output, x), frequency) in output
             .as_mut_slice(ps)
             .into_iter()
             .zip(x.as_slice(ps))
-            .zip(delay.as_slice(ps))
+            .zip(frequency.as_slice(ps))
         {
-            *output = module.sample(Sample::from(*x), Sample::from(*delay)) as f32;
+            *output = module.sample(Sample::from(*x), Sample::from(*frequency)) as f32;
         }
         jack::Control::Continue
     };

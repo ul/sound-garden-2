@@ -1,6 +1,7 @@
-//! # Delay
+//! # Feedback
 //!
-//! Write `x` port signal delayed by seconds provided via `delay` port to the `output` port.
+//! Pass `x` port signal via feedback comb filter controller via `delay` and `gain` ports.
+//! Result goes to the `output` port.
 //! Max delay must be provided via `--max-delay` argument to allocate appropriate buffer on start.
 
 #[macro_use]
@@ -13,10 +14,10 @@ use clap::{App, Arg};
 use synth_modules::prelude::*;
 
 pub fn main() {
-    let matches = App::new("Delay")
+    let matches = App::new("Feedback")
         .version(crate_version!())
         .author("Ruslan Prokopchuk <fer.obbee@gmail.com>")
-        .about("Delay signal up to max_delay seconds")
+        .about("Feedback comb filter with variable delay and gain")
         .arg(
             Arg::with_name("MAX_DELAY")
                 .long("max-delay")
@@ -44,7 +45,7 @@ pub fn main() {
         jack::ClientOptions::NO_START_SERVER | jack::ClientOptions::USE_EXACT_NAME,
     ).expect("Failed to connect to JACK");
 
-    let mut module = Delay::new(client.sample_rate(), max_delay);
+    let mut module = Feedback::new(client.sample_rate(), max_delay);
 
     let x = client
         .register_port("x", jack::AudioIn::default())
@@ -54,18 +55,24 @@ pub fn main() {
         .register_port("delay", jack::AudioIn::default())
         .expect("Failed to register input port");
 
+    let gain = client
+        .register_port("gain", jack::AudioIn::default())
+        .expect("Failed to register input port");
+
     let mut output = client
         .register_port("output", jack::AudioOut::default())
         .expect("Failed to register output port");
 
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
-        for ((output, x), delay) in output
+        for (((output, x), delay), gain) in output
             .as_mut_slice(ps)
             .into_iter()
             .zip(x.as_slice(ps))
             .zip(delay.as_slice(ps))
+            .zip(gain.as_slice(ps))
         {
-            *output = module.sample(Sample::from(*x), Sample::from(*delay)) as f32;
+            *output =
+                module.sample(Sample::from(*x), Sample::from(*delay), Sample::from(*gain)) as f32;
         }
         jack::Control::Continue
     };

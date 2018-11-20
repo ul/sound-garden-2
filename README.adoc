@@ -1,5 +1,5 @@
 ----
-$ cargo build -p jack-modules --bin constant --bin phasor --bin delay --bin noise --bin fn1 --bin fn2 --bin fn3 --release
+$ cargo build -p jack-modules --bins --release
 ----
 
 ----

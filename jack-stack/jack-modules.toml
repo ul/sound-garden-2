@@ -15,6 +15,15 @@ slash_args = ["--max-delay"]
 inputs = ["x", "delay"]
 outputs = ["output"]
 
+[feedback]
+cmd = "target/release/feedback"
+slash_args = ["--max-delay"]
+inputs = ["x", "delay", "gain"]
+outputs = ["output"]
+
+[fb]
+expansion = "feedback/60"
+
 [noise]
 cmd = "target/release/noise"
 inputs = []
@@ -111,3 +120,28 @@ expansion = "tri"
 
 [w]
 expansion = "saw"
+
+# Filters
+
+[lpf]
+cmd = "target/release/rc_lpf"
+inputs = ["x", "frequency"]
+outputs = ["output"]
+
+[hpf]
+cmd = "target/release/rc_hpf"
+inputs = ["x", "frequency"]
+outputs = ["output"]
+
+#
+
+[capture]
+cmd = "target/release/capture"
+inputs = []
+outputs = ["output_1", "output_2"]
+
+[input]
+expansion = "capture"
+
+[in]
+expansion = "input"
