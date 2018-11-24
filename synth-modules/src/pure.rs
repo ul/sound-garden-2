@@ -86,3 +86,11 @@ pub fn rectangle(phase: Sample, width: Sample) -> Sample {
         -1.0
     }
 }
+
+/// Stereo intensity-preserving panner
+pub fn pan(l: Sample, r: Sample, c: Sample) -> (Sample, Sample) {
+    (
+        1.0_f64.min(1.0 - c).sqrt() * l + 0.0_f64.max(-c).sqrt() * r,
+        0.0_f64.max(c).sqrt() * l + 1.0_f64.min(1.0 + c).sqrt() * r,
+    )
+}

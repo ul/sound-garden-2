@@ -145,3 +145,8 @@ expansion = "capture"
 
 [in]
 expansion = "input"
+
+[pan]
+cmd = "target/release/pan"
+inputs = ["input_1", "input_2", "c"]
+outputs = ["output_1", "output_2"]
