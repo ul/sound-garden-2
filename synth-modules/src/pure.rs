@@ -94,3 +94,38 @@ pub fn pan(l: Sample, r: Sample, c: Sample) -> (Sample, Sample) {
         0.0_f64.max(c).sqrt() * l + 1.0_f64.min(1.0 + c).sqrt() * r,
     )
 }
+
+/// Chebyshev polynomial of degree 2
+/// T_2(x) = 2x^2 - 1
+pub fn cheb2(x: Sample) -> Sample {
+    2.0 * x.powi(2) - 1.0
+}
+
+/// Chebyshev polynomial of degree 3
+/// T_3(x) = 4x^3 - 3x
+pub fn cheb3(x: Sample) -> Sample {
+    4.0 * x.powi(3) - 3.0 * x
+}
+
+/// Chebyshev polynomial of degree 4
+/// T_4(x) = 8x^4 - 8x^2 + 1
+pub fn cheb4(x: Sample) -> Sample {
+    let x2 = x * x;
+    8.0 * x2 * (x2 - 1.0) + 1.0
+}
+
+/// Chebyshev polynomial of degree 5
+/// T_5(x) = 16x^5 - 20x^3 +5x
+pub fn cheb5(x: Sample) -> Sample {
+    let x2 = x * x;
+    let x3 = x2 * x;
+    16.0 * x2 * x3 - 20.0 * x3 + 5.0 * x
+}
+
+/// Chebyshev polynomial of degree 6
+/// T_6(x) = 32x^6 - 48x^4 + 18x^2 - 1
+pub fn cheb6(x: Sample) -> Sample {
+    let x2 = x * x;
+    let x4 = x2 * x2;
+    32.0 * x2 * x4 - 48.0 * x4 + 18.0 * x2 - 1.0
+}

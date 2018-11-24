@@ -10,6 +10,7 @@
 //! * triangle -- /| -> /\
 //! * unit     -- [-1, 1] -> [0, 1]
 //! * circle   -- [-1, 1] -> [-π, π]
+//! * cheb<N>  -- Chebyshev polynomial of the first kind and degree N
 
 #[macro_use]
 extern crate clap;
@@ -47,6 +48,11 @@ pub fn main() {
         "triangle" => triangle,
         "unit" => unit,
         "circle" => circle,
+        "cheb2" => cheb2,
+        "cheb3" => cheb3,
+        "cheb4" => cheb4,
+        "cheb5" => cheb5,
+        "cheb6" => cheb6,
         name => panic!("Unknown function: {}", name),
     };
 
